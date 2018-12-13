@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial.distance import pdist, squareform
 
-data = np.random.rand(100, 2)  # 100 rows of 2 x,y values
+data = np.random.rand(150, 2)  # 100 rows of 2 x,y values
 print "data = ", data
 
 
@@ -54,28 +54,26 @@ def greedy_diverse(d, k):
             else:
                 cols.append(i)
         print "rows = ", rows, " and cols = ", cols
+
+        # obtain pairwise distances for region of interest
         sub_matrix = distance_matrix[np.ix_(rows, cols)]
         print "section of interest = ", sub_matrix
-        # np.fill_diagonal(sub_matrix, np.nan)
-        # print "sub mat = ", sub_matrix
 
-        # sub_min_distances = np.nanmin(sub_matrix, axis=1)
-        # print "sub mat dist = ", sub_min_distances
+        # obtain min distance for each point, with respect to the chosen points
+        sub_max_min_dist_per_col = np.min(sub_matrix, axis=1)
+        print "res = ", sub_max_min_dist_per_col
 
-        sub_max_min_dist_per_col = np.amax(sub_matrix, 0)
-        print sub_max_min_dist_per_col
-
+        # obtain the point and add it to the sample
         sub_max_min_index = list(sub_max_min_dist_per_col).index(max(sub_max_min_dist_per_col))
         print "sub mat max = ", sub_max_min_index
         top_k.append(cols[sub_max_min_index])
 
     print "final set = ", top_k
+    print "final set ordered  = ", sorted(top_k)
 
     # remember to return
 
-# dist_matrix(data)
-
-greedy_diverse(data, 20)
+greedy_diverse(data, 60)
 
 
 fig = plt.figure()
@@ -91,7 +89,7 @@ for i in xrange(0, data.shape[0]):
     else:
         colour.append("blue")
 
-ax.scatter(x, y, color = colour)
+ax.scatter(x, y, color=colour)
 # for i, txt in enumerate(colour):
 #     ax.annotate(i, (x[i], y[i]))
 
