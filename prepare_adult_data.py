@@ -1,3 +1,6 @@
+from collections import Counter
+
+
 def read_data():
     with open("./data/adult.data.txt") as a_data:
         lines = a_data.readlines()
@@ -79,12 +82,15 @@ def assign_salary_num(salary):
         return -1
 
 
-def process():
+def process(count, columns=None):
+    if columns is None:
+        columns = ["all"]
     processed_data = []
     data = read_data()
-    for i in xrange(0, 3):
+    for i in xrange(0, count):
+    # for i in xrange(0, len(data)):
         line = data[i].split(" ")
-        print line
+        # print line
         age = float(line[0].replace(",", ""))
         work_class = line[1].replace(",", "").lower()
         work_class_num = assign_work_class_num(work_class)
@@ -106,21 +112,76 @@ def process():
         capital_loss = float(line[11].replace(",", ""))
         hours_per_week = float(line[12].replace(",", ""))
         native_country = line[13].replace(",", "").lower()
-        # print native_country
         native_country_num = assign_native_country_num(native_country)
-        # print native_country_num
 
         salary = line[14].replace("\n", "").lower()
         salary_num = assign_salary_num(salary)
 
-        num_row = [age, work_class_num, fnlwgt, education_num, marital_status_num,
-                   occupation_num, relationship_num, race_num, gender_num, capital_gain, capital_loss, hours_per_week,
-                   native_country_num, salary_num]
+        all = "all"
+        if all in columns:
+            # num_row = [age, work_class_num, fnlwgt, education_num, marital_status_num,
+            #            occupation_num, relationship_num, race_num, gender_num, capital_gain, capital_loss,
+            #            hours_per_week,
+            #            native_country_num, salary_num]
 
-        print num_row
+            num_row = [age, work_class, fnlwgt, education, marital_status, occupation, relationship, race, gender,
+                       capital_gain, capital_loss, hours_per_week, native_country, salary]
+        else:
+            num_row = []
+            for column in columns:
+                if column.lower() == "age":
+                    num_row.append(age)
+                if column.lower() == "work_class":
+                    num_row.append(work_class)
+                if column.lower() == "fnlwgt":
+                    num_row.append(fnlwgt)
+                if column.lower() == "education":
+                    num_row.append(education)
+                if column.lower() == "marital_status":
+                    num_row.append(marital_status)
+                if column.lower() == "occupation":
+                    num_row.append(occupation)
+                if column.lower() == "relationship":
+                    num_row.append(relationship)
+                if column.lower() == "race":
+                    num_row.append(race)
+                if column.lower() == "gender":
+                    num_row.append(gender)
+                if column.lower() == "capital_gain":
+                    num_row.append(capital_gain)
+                if column.lower() == "capital_loss":
+                    num_row.append(capital_loss)
+                if column.lower() == "hours_per_week":
+                    num_row.append(hours_per_week)
+                if column.lower() == "native_country":
+                    num_row.append(native_country)
+                if column.lower() == "salary":
+                    num_row.append(salary)
+
+        # print num_row
         processed_data.append(num_row)
+    # print "processed data = ", processed_data
     return processed_data
 
-process()
 
+def obtain_sensitive_attributes_columns(sensitive_attributes):
+    cols = []
+    for sa in sensitive_attributes:
+        if sa.lower() == "gender":
+            cols.append(8)
+        if sa.lower() == "race":
+            cols.append(7)
+        if sa.lower() == "marital_status":
+            cols.append(4)
+    return cols
+
+
+def compute_proportions(data, sa_index):
+    rows = []
+    for i in data:
+        rows.append(i[sa_index])
+    return rows
+
+# process(columns=["age", "education", "occupation"])
+# process()
 
