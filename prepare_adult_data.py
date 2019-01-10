@@ -87,8 +87,8 @@ def process(count, columns=None):
         columns = ["all"]
     processed_data = []
     data = read_data()
-    for i in xrange(0, count):
-    # for i in xrange(0, len(data)):
+    # for i in xrange(0, count):
+    for i in xrange(0, len(data)):
         line = data[i].split(" ")
         # print line
         age = float(line[0].replace(",", ""))
@@ -137,6 +137,8 @@ def process(count, columns=None):
                     num_row.append(fnlwgt)
                 if column.lower() == "education":
                     num_row.append(education)
+                if column.lower() == "education-num":
+                    num_row.append(education_num)
                 if column.lower() == "marital_status":
                     num_row.append(marital_status)
                 if column.lower() == "occupation":
