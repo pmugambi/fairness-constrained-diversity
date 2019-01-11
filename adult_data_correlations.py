@@ -9,7 +9,6 @@ import prepare_adult_data as pad
 def compute_correlation(x, y):
     return stats.pearsonr(x, y)
 
-# get correlation between age and gender
 
 age = "age"
 gender = "gender_num"
@@ -56,30 +55,6 @@ hours_per_weeks_list = helpers.list_of_lists_to_list(hours_per_weeks)
 native_countries_list = helpers.list_of_lists_to_list(native_countries)
 
 
-
-
-#
-# print "age vs gender = ", compute_correlation(ages, genders)
-# # # get correlation between fnlwgt and age
-# # print "age vs fnlwgt = ", compute_correlation(ages, fnlwgts)
-# # # get correlation between fnlwgt and gender
-# # print "fnlwgt vs gender = ", compute_correlation(fnlwgts, genders)
-# # # get correlation between education and gender
-# # print "education vs gender = ", compute_correlation(educations, genders)
-# #
-# # print stats.pearsonr([1,2,3,4,5], [5,6,7,8,7])
-# # print stats.pearsonr([[1], [2], [3], [4], [5]], [[5], [6], [7], [8], [7]])
-#
-#
-# # print np.corrcoef([ages, genders])
-#
-# # print np.corrcoef([[1,2,3,4,5], [5,6,7,8,7]])
-# # print np.corrcoef([[[1], [2], [3], [4], [5]], [[5], [6], [7], [8], [7]]])
-#
-# b = [[1], [2], [3], [4], [5]]
-# print helpers.list_of_lists_to_list(b)
-#
-#
 coefs = np.corrcoef([ages_list, genders_list, fnlwgts_list, educations_list, workclasses_list, maritalstatuses_list,
                    occupations_list, relationships_list, races_list, capital_gains_list, capital_losses_list,
                    hours_per_weeks_list, native_countries_list])
@@ -88,84 +63,48 @@ coefs2 = np.copy(coefs)
 
 np.fill_diagonal(coefs2, np.nan)
 
-# print coefs
 print coefs.max()
 print coefs.min()
 
 min_distances = np.nanmin(coefs2, axis=1)
 max_distances = np.nanmax(coefs2, axis=1)
 
-# print min_distances
-# print max_distances
-
 print min(min_distances)
 print max(max_distances)
 
-print compute_correlation(capital_gains_list, educations_list)
-print compute_correlation(capital_losses_list, ages_list)
+# attributes_x = ["age", "gender", "fnlwgt", "education", "work-class", "marital-status", "occupation", "relationship",
+#               "race", "capital-gain", "capital-loss", "hours-per-week", "native-country"]
 
-print np.around(coefs, 3)
+attributes_x = ["age", "gender", "fnlwgt", "educ", "work", "marital", "occup", "r_ship", "race", "c_gain", "c_loss",
+                "hours", "country"]
 
-# plt.matshow(coefs)
-# plt.show()
-
-
-
-# vegetables = ["cucumber", "tomato", "lettuce", "asparagus",
-#               "potato", "wheat", "barley"]
-
-# farmers = ["Farmer Joe", "Upland Bros.", "Smith Gardening",
-#            "Agrifun", "Organiculture", "BioGoods Ltd.", "Cornylee Corp."]
-
-vegetables = ["age", "gender", "fnlwgt", "education", "work-class", "marital-status", "occupation", "relationship",
-              "race", "capital-gain", "capital-loss", "hours-per-week", "native-country"]
-# vegetables = ["age", "gender", "fnlwgt", "education", "work", "marital", "occupation", "relationship",
-#               "race", "capitalg", "capitall", "whours", "country"]
-
-# vegetables = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-
-farmers = ["age", "gender", "fnlwgt", "education", "work-class", "marital-status", "occupation", "relationship",
+attributes_y = ["age", "gender", "fnlwgt", "education", "work-class", "marital-status", "occupation", "relationship",
            "race", "capital-gain", "capital-loss", "hours-per-week", "native-country"]
-#
-# farmers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-
-
-# harvest = np.array([[0.8, 2.4, 2.5, 3.9, 0.0, 4.0, 0.0],
-#                     [2.4, 0.0, 4.0, 1.0, 2.7, 0.0, 0.0],
-#                     [1.1, 2.4, 0.8, 4.3, 1.9, 4.4, 0.0],
-#                     [0.6, 0.0, 0.3, 0.0, 3.1, 0.0, 0.0],
-#                     [0.7, 1.7, 0.6, 2.6, 2.2, 6.2, 0.0],
-#                     [1.3, 1.2, 0.0, 0.0, 0.0, 3.2, 5.1],
-#                     [0.1, 2.0, 0.0, 1.4, 0.0, 1.9, 6.3]])
-#
-# print harvest
 
 
 co = np.array(np.around(coefs2, 2))
-print "here = ", co
-print co.shape
 
 fig, ax = plt.subplots()
 im = ax.imshow(co)
 
 # We want to show all ticks...
-ax.set_xticks(np.arange(len(farmers)))
-ax.set_yticks(np.arange(len(vegetables)))
+ax.set_xticks(np.arange(len(attributes_x)))
+ax.set_yticks(np.arange(len(attributes_y)))
 # ... and label them with the respective list entries
-ax.set_xticklabels(farmers)
-ax.set_yticklabels(vegetables)
+ax.set_xticklabels(attributes_x)
+ax.set_yticklabels(attributes_y)
 
 # Rotate the tick labels and set their alignment.
-plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+plt.setp(ax.get_xticklabels(), rotation=90, ha="right",
          rotation_mode="anchor")
 
 # Loop over data dimensions and create text annotations.
-for i in range(len(vegetables)):
-    for j in range(len(farmers)):
+for i in range(len(attributes_x)):
+    for j in range(len(attributes_y)):
         text = ax.text(j, i, co[i, j],
                        ha="center", va="center", color="w")
 
-ax.set_title("Harvest of local farmers (in tons/year)")
-fig.tight_layout()
+ax.set_title("Adult data attributes correlation")
+fig.savefig("./data/results/variable_correlations")
 # plt.tight_layout()
 plt.show()

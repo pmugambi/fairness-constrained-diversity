@@ -161,21 +161,22 @@ def plot_multi_bars(ax, fig, rects, rects_keys, rects_values, sensitive_a, div_a
 
     for rect in rects:
         autolabel(ax, rect)
-    # fig.savefig("./data/results/" + div_attribute + "_" + sensitive_a + "_proportions_kperc_"+str(k_perc))
-    fig.savefig("./data/results/" + div_attribute + "_" + sensitive_a + "_proportions_ss_1000")
+    fig.savefig("./data/results/" + div_attribute + "_" + sensitive_a + "_proportions_kperc_"+str(k_perc))
+    # fig.savefig("./data/results/" + div_attribute + "_" + sensitive_a + "_proportions_ss_10000")
     plt.show()
 
 k_perc = 5
-all_data, data_sample, div_attribute = sample_on(1000, "capital_loss")
-# gender_totals = compute_gender_proportions(all_data, data_sample)
-racial_totals = compute_racial_proportions(all_data, data_sample)
+all_data, data_sample, div_attribute = sample_on(10000, "hours_per_week")
+gender_totals = compute_gender_proportions(all_data, data_sample)
+# racial_totals = compute_racial_proportions(all_data, data_sample)
 
 # plot
 
 N = 2  # number of groups
 ind = np.arange(N)  # the x locations for the groups
 figure, axes = plt.subplots()
-# g_rects, g_rect_keys, g_rect_values = build_gender_rects(gender_totals, axes, ind)
+g_rects, g_rect_keys, g_rect_values = build_gender_rects(gender_totals, axes, ind)
 # plot_multi_bars(axes, figure, g_rects, g_rect_keys, g_rect_values, "gender", "capital_loss", k_perc)
-r_rects, r_rect_keys, r_rect_values = build_race_rects(racial_totals, axes, ind)
-plot_multi_bars(axes, figure, r_rects, r_rect_keys, r_rect_values, "race", "capital_loss", k_perc)
+plot_multi_bars(axes, figure, g_rects, g_rect_keys, g_rect_values, "gender", "hours_per_week", k_perc)
+# r_rects, r_rect_keys, r_rect_values = build_race_rects(racial_totals, axes, ind)
+# plot_multi_bars(axes, figure, r_rects, r_rect_keys, r_rect_values, "race", "capital_loss", k_perc)
