@@ -11,11 +11,11 @@ def sample_diverse_k(data, k=10):
     d = np.array(data)
     print "length of data received = ", len(data)
 
-    print "d = ", d
+    # print "d = ", d
 
     # normalize columns
     d_normed = d / d.max(axis=0)
-    print d_normed
+    # print d_normed
 
     # get 5% of the data
     k = math.ceil(0.05 * len(data))
@@ -161,12 +161,12 @@ def plot_multi_bars(ax, fig, rects, rects_keys, rects_values, sensitive_a, div_a
 
     for rect in rects:
         autolabel(ax, rect)
-    fig.savefig("./data/results/" + div_attribute + "_" + sensitive_a + "_proportions_kperc_"+str(k_perc))
-    # fig.savefig("./data/results/" + div_attribute + "_" + sensitive_a + "_proportions_ss_10000")
+    # fig.savefig("./data/results/" + div_attribute + "_" + sensitive_a + "_proportions_kperc_"+str(k_perc))
+    fig.savefig("./data/results/" + div_attribute + "_" + sensitive_a + "_proportions_ss_1000")
     plt.show()
 
 k_perc = 5
-all_data, data_sample, div_attribute = sample_on(10000, "capital_loss")
+all_data, data_sample, div_attribute = sample_on(1000, "capital_loss")
 # gender_totals = compute_gender_proportions(all_data, data_sample)
 racial_totals = compute_racial_proportions(all_data, data_sample)
 

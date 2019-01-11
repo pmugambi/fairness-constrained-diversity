@@ -85,8 +85,11 @@ def assign_salary_num(salary):
 def process(count, columns=None):
     if columns is None:
         columns = ["all"]
+
+    print "columns = ", columns
     processed_data = []
     data = read_data()
+    # print "data = ", data
     # for i in xrange(0, count):
     for i in xrange(0, len(data)):
         line = data[i].split(" ")
@@ -101,6 +104,7 @@ def process(count, columns=None):
         marital_status_num = assign_marital_status_num(marital_status)
         occupation = line[6].replace(",", "").lower()
         occupation_num = assign_occupations_num(occupation)
+        # print "occupation and occupation_num = ", occupation, occupation_num
         relationship = line[7].replace(",", "").lower()
         relationship_num = assign_relationship_num(relationship)
         race = line[8].replace(",", "").lower()
@@ -137,7 +141,7 @@ def process(count, columns=None):
                     num_row.append(fnlwgt)
                 if column.lower() == "education":
                     num_row.append(education)
-                if column.lower() == "education-num":
+                if column.lower() == "education_num":
                     num_row.append(education_num)
                 if column.lower() == "marital_status":
                     num_row.append(marital_status)
@@ -159,6 +163,22 @@ def process(count, columns=None):
                     num_row.append(native_country)
                 if column.lower() == "salary":
                     num_row.append(salary)
+                if column.lower() == "gender_num":
+                    num_row.append(gender_num)
+                if column.lower() == "work_class_num":
+                    num_row.append(work_class_num)
+                if column.lower() == "marital_status_num":
+                    num_row.append(marital_status_num)
+                if column.lower() == "occupation_num":
+                    num_row.append(occupation_num)
+                if column.lower() == "relationship_num":
+                    num_row.append(relationship_num)
+                if column.lower() == "race_num":
+                    num_row.append(race_num)
+                if column.lower() == "native_country_num":
+                    num_row.append(native_country_num)
+                # else:
+                #     print "column ", column, " not found"
 
         # print num_row
         processed_data.append(num_row)
