@@ -94,6 +94,47 @@ def compute_racial_proportions(total_data, sample):
     return props_x
 
 
+def compute_marital_proportions(total_data, sample):
+    fairness_attributes = pad.obtain_sensitive_attributes_columns(["marital_status"])
+    sample_sensitive_attributes_values = evaluate_fairness(total_data, sample, fairness_attributes)
+
+    total_married_civ_spouse_prop = float(
+        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "married-civ-spouse")) / len(total_data)
+    total_divorced_prop = float(h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "divorced")) / len(
+        total_data)
+    total_never_married_prop = float(
+        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "never-married")) / len(
+        total_data)
+    total_separated_prop = float(h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "separated")) / len(
+        total_data)
+    total_widowed_prop = float(
+        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "widowed")) / len(
+        total_data)
+    total_married_spouse_absent_prop = float(
+        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "married-spouse-absent")) / len(
+        total_data)
+    total_married_af_spouse_prop = float(
+        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "married-af-spouse")) / len(
+        total_data)
+
+    sample_married_civ_spouse_prop = float(h.my_counter(sample_sensitive_attributes_values, "married-civ-spouse")) / len(sample)
+    sample_divorced_prop = float(h.my_counter(sample_sensitive_attributes_values, "divorced")) / len(sample)
+    sample_never_married_prop = float(h.my_counter(sample_sensitive_attributes_values, "never-married")) / len(sample)
+    sample_separated_prop = float(h.my_counter(sample_sensitive_attributes_values, "separated")) / len(sample)
+    sample_widowed_prop = float(h.my_counter(sample_sensitive_attributes_values, "widowed")) / len(sample)
+    sample_married_spouse_absent_prop = float(h.my_counter(sample_sensitive_attributes_values, "married-spouse-absent")) / len(sample)
+    sample_married_af_spouse_prop = float(h.my_counter(sample_sensitive_attributes_values, "married-af-spouse")) / len(sample)
+
+    props_x = [total_married_civ_spouse_prop, total_divorced_prop, total_never_married_prop, total_separated_prop,
+               total_widowed_prop, total_married_spouse_absent_prop, total_married_af_spouse_prop,
+               sample_married_civ_spouse_prop, sample_divorced_prop, sample_never_married_prop,
+               sample_separated_prop, sample_widowed_prop, sample_married_spouse_absent_prop,
+               sample_married_af_spouse_prop]
+
+    print "proportions = ", props_x
+    return props_x
+
+
 def build_gender_rects(gender_props, ax, ind, width=0.35):
     men_std = (2, 3)
     men_props = (gender_props[0]*100, gender_props[2]*100)
@@ -105,6 +146,45 @@ def build_gender_rects(gender_props, ax, ind, width=0.35):
     y = [rects1, rects2]
     rect_keys = (rects1[0], rects2[0])
     rect_values = ('Men', 'Women')
+    return y, rect_keys, rect_values
+
+
+def build_marital_rects(marital_props, ax, ind, width=0.1):
+    married_civ_spouse_std = (2, 3)
+    married_civ_spouse_props = (marital_props[0] * 100, marital_props[7] * 100)
+    rects1 = ax.bar(ind, married_civ_spouse_props, width, color='r', yerr=married_civ_spouse_std)
+
+    divorced_props = (marital_props[1] * 100, marital_props[8] * 100)
+    divorced_std = (3, 5)
+    rects2 = ax.bar(ind + width, divorced_props, width, color='y', yerr=divorced_std)
+
+    never_married_props = (marital_props[2] * 100, marital_props[9] * 100)
+    never_married_std = (3, 5)
+    rects3 = ax.bar(ind + 2 * width, never_married_props, width, color='g', yerr=never_married_std)
+
+    separated_props = (marital_props[3] * 100, marital_props[10] * 100)
+    separated_std = (3, 5)
+    rects4 = ax.bar(ind + 3 * width, separated_props, width, color='c', yerr=separated_std)
+
+    widowed_props = (marital_props[4] * 100, marital_props[11] * 100)
+    widowed_std = (3, 5)
+    rects5 = ax.bar(ind + 4 * width, widowed_props, width, color='b', yerr=widowed_std)
+
+    married_spouse_absent_props = (marital_props[5] * 100, marital_props[12] * 100)
+    married_spouse_absent_std = (3, 5)
+    rects6 = ax.bar(ind + 5 * width, married_spouse_absent_props, width, color='w', yerr=married_spouse_absent_std)
+
+    married_af_spouse_props = (marital_props[6] * 100, marital_props[13] * 100)
+    married_af_spouse_std = (3, 5)
+    rects7 = ax.bar(ind + 6 * width, married_af_spouse_props, width, color='k', yerr=married_af_spouse_std)
+
+    y = [rects1, rects2, rects3, rects4, rects5, rects6, rects7]
+    rect_keys = (rects1[0], rects2[0], rects3[0], rects4[0], rects5[0], rects6[0], rects7[0])
+    rect_values = ('Married-civ-spouse', 'Divorced', 'Never-married', 'Separated', 'Widowed', 'Married-spouse-absent',
+                   'Married-AF-spouse')
+    rect_values = ('m_civ_spouse', 'divorced', 'never_m', 'separated', 'widowed', 'm_spouse_absent',
+                   'm_af_spouse')
+
     return y, rect_keys, rect_values
 
 
@@ -146,8 +226,7 @@ def autolabel(ax, rects):
                 ha='center', va='bottom')
 
 
-def plot_multi_bars(ax, fig, rects, rects_keys, rects_values, sensitive_a, div_attribute, k_perc, width=0.35):
-    print "rects contains = ", rects
+def plot_multi_bars(ax, fig, rects, rects_keys, rects_values, sensitive_a, div_attribute, k_perc, width=0.1):
     width = width  # the width of the bars
 
     # add some text for labels, title and axes ticks
@@ -162,21 +241,24 @@ def plot_multi_bars(ax, fig, rects, rects_keys, rects_values, sensitive_a, div_a
     for rect in rects:
         autolabel(ax, rect)
     fig.savefig("./data/results/" + div_attribute + "_" + sensitive_a + "_proportions_kperc_"+str(k_perc))
-    # fig.savefig("./data/results/" + div_attribute + "_" + sensitive_a + "_proportions_ss_10000")
+    # fig.savefig("./data/results/" + div_attribute + "_" + sensitive_a + "_proportions_ss_1000")
     plt.show()
 
 k_perc = 5
-all_data, data_sample, div_attribute = sample_on(10000, "hours_per_week")
+all_data, data_sample, div_attribute = sample_on(1000, "relationship_num")
 gender_totals = compute_gender_proportions(all_data, data_sample)
 # racial_totals = compute_racial_proportions(all_data, data_sample)
+marital_totals = compute_marital_proportions(all_data, data_sample)
 
 # plot
 
 N = 2  # number of groups
 ind = np.arange(N)  # the x locations for the groups
 figure, axes = plt.subplots()
-g_rects, g_rect_keys, g_rect_values = build_gender_rects(gender_totals, axes, ind)
+# g_rects, g_rect_keys, g_rect_values = build_gender_rects(gender_totals, axes, ind)
 # plot_multi_bars(axes, figure, g_rects, g_rect_keys, g_rect_values, "gender", "capital_loss", k_perc)
-plot_multi_bars(axes, figure, g_rects, g_rect_keys, g_rect_values, "gender", "hours_per_week", k_perc)
+# plot_multi_bars(axes, figure, g_rects, g_rect_keys, g_rect_values, "marital_status", "hours_per_week", k_perc)
 # r_rects, r_rect_keys, r_rect_values = build_race_rects(racial_totals, axes, ind)
 # plot_multi_bars(axes, figure, r_rects, r_rect_keys, r_rect_values, "race", "capital_loss", k_perc)
+m_rects, m_rect_keys, m_rect_values = build_marital_rects(marital_totals, axes, ind)
+plot_multi_bars(axes, figure, m_rects, m_rect_keys, m_rect_values, "marital_status", "relationship_num", k_perc)
