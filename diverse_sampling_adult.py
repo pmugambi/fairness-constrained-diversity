@@ -1,25 +1,23 @@
 import numpy as np
 import prepare_adult_data as pad
+import prepare_kdd_census_data as pkcd
 import gmm as gmm
 import math
 import helpers as h
 import matplotlib.pyplot as plt
 
 
-def sample_diverse_k(data, k=10):
+def sample_diverse_k(data, k_perc):
     # create a numpy matrix of the data
-    d = np.array(data)
-    print "length of data received = ", len(data)
-
-    # print "d = ", d
+    d = np.asmatrix(np.array(data))
+    print "length of data received = ", len(data), d.shape
 
     # normalize columns
     d_normed = d / d.max(axis=0)
-    # print d_normed
+    # print "normalized d = ", d_normed, np.asmatrix(d_normed)
 
-    # get 5% of the data
-    k = math.ceil(0.05 * len(data))
-
+    # get 1% of the data
+    k = math.ceil((k_perc * 0.01) * len(data))
     print "k = ", k
 
     top_k = gmm.greedy_diverse(d_normed, k)
@@ -28,7 +26,17 @@ def sample_diverse_k(data, k=10):
     return top_k
 
 
+def sample_mixed_data_diverse_k(con_data, cat_data, max_diff, k):
+    con_d = np.asmatrix(np.array(con_data))
+    cat_d = np.asmatrix(np.array(cat_data))
+    top_k = gmm.greedy_diverse_mod(con_d, cat_d, max_diff, k)
+    print top_k
+
+    return top_k
+
+
 def evaluate_fairness(data, sample, fairness_attributes):
+    print "sample received = ", sample
     sample_sensitive_attributes_values = []
     for index in sample:
         data_line = data[index]
@@ -40,25 +48,57 @@ def evaluate_fairness(data, sample, fairness_attributes):
     return sample_sensitive_attributes_values
 
 
-def sample_on(x, diversification_attribute):
-    total_data = pad.process(x)
-    data = pad.process(x, [diversification_attribute])  # obtain data based on diversification attribute
-    sample = sample_diverse_k(data)
+def sample_on(perc, data_set, x, diversification_attribute):
+    data = []
+    total_data = []
+    sample = []
+    if data_set.lower() == "adult":
+        total_data = pad.process(x)
+        data = pad.process(x, [diversification_attribute])  # obtain data based on diversification attribute
+        sample = sample_diverse_k(data, perc)
+    elif data_set.lower() == "census":
+        total_data = pkcd.clean_rows(x)
+        # data1 = pkcd.process(x, diversification_attribute)  # obtain data based on diversification attribute
+        data2 = pkcd.process(x, "gender_num")
+        data2 = pkcd.process(x, "race_num")
+
+        data = pkcd.process(x, diversification_attribute)
+        div_vals = pkcd.process(x, diversification_attribute)
+
+        min_v = min(div_vals)[0]
+        max_v = max(div_vals)[0]
+
+        print "min_v = ", min_v
+
+        max_diff = max_v - min_v
+        genders = pkcd.process(x, "gender")
+        # data = zip(data1, data2)
+        # print "data 2 = ", data2
+        print "div vals =  ", div_vals, "and it's size = ", len(data)
+        # print "genders ", genders
+        # sample = sample_diverse_k(data, perc)
+        sample = sample_mixed_data_diverse_k(div_vals, data2, max_diff, perc)
 
     return total_data, sample, diversification_attribute
 
 
-def compute_gender_proportions(total_data, sample):
-    fairness_attributes = pad.obtain_sensitive_attributes_columns(["gender"])
+def compute_gender_proportions(data_set, total_data, sample):
+    if data_set.lower() == "adult":
+        fairness_attributes = pad.obtain_sensitive_attributes_columns(["gender"])
+    else:
+        fairness_attributes = pkcd.obtain_sensitive_attributes_columns(["gender"])
     sample_sensitive_attributes_values = evaluate_fairness(total_data, sample, fairness_attributes)
 
+    f_values = ["female"]
+    m_values = ["male"]
+
     total_female_prop = float(
-        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "female")) / len(total_data)
-    total_male_prop = float(h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "male")) / len(
+        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), f_values)) / len(total_data)
+    total_male_prop = float(h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), m_values)) / len(
         total_data)
 
-    sample_female_prop = float(h.my_counter(sample_sensitive_attributes_values, "female")) / len(sample)
-    sample_male_prop = float(h.my_counter(sample_sensitive_attributes_values, "male")) / len(sample)
+    sample_female_prop = float(h.my_counter(sample_sensitive_attributes_values, f_values)) / len(sample)
+    sample_male_prop = float(h.my_counter(sample_sensitive_attributes_values, m_values)) / len(sample)
 
     props_x = [total_male_prop, total_female_prop, sample_male_prop, sample_female_prop]
 
@@ -66,26 +106,37 @@ def compute_gender_proportions(total_data, sample):
     return props_x
 
 
-def compute_racial_proportions(total_data, sample):
-    fairness_attributes = pad.obtain_sensitive_attributes_columns(["race"])
+def compute_racial_proportions(data_set, total_data, sample):
+    if data_set.lower() == "adult":
+        fairness_attributes = pad.obtain_sensitive_attributes_columns(["race"])
+    else:
+        fairness_attributes = pkcd.obtain_sensitive_attributes_columns(["race"])
+    # print "fairness_attribute value = ", fairness_attributes
     sample_sensitive_attributes_values = evaluate_fairness(total_data, sample, fairness_attributes)
 
+    # White, Black, Other, Amer Indian Aleut or Eskimo, Asian or Pacific Islander.
+    w_values = ["white"]
+    b_values = ["black"]
+    n_values = ["amer-indian-eskimo", "amer indian aleut or eskimo"]
+    a_values = ["asian-pac-islander", "asian or pacific islander"]
+    o_values = ["others"]
+
     total_white_prop = float(
-        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "white")) / len(total_data)
-    total_black_prop = float(h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "black")) / len(
+        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), w_values)) / len(total_data)
+    total_black_prop = float(h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), b_values)) / len(
         total_data)
-    total_asian_prop = float(h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "asian-pac-islander")) / len(
+    total_asian_prop = float(h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), a_values)) / len(
         total_data)
-    total_other_prop = float(h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "other")) / len(
+    total_other_prop = float(h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), o_values)) / len(
         total_data)
-    total_native_a_prop = float(h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "amer-indian-eskimo")) / len(
+    total_native_a_prop = float(h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), n_values)) / len(
         total_data)
 
-    sample_white_prop = float(h.my_counter(sample_sensitive_attributes_values, "white")) / len(sample)
-    sample_black_prop = float(h.my_counter(sample_sensitive_attributes_values, "black")) / len(sample)
-    sample_asian_prop = float(h.my_counter(sample_sensitive_attributes_values, "asian-pac-islander")) / len(sample)
-    sample_other_prop = float(h.my_counter(sample_sensitive_attributes_values, "other")) / len(sample)
-    sample_native_a_prop = float(h.my_counter(sample_sensitive_attributes_values, "amer-indian-eskimo")) / len(sample)
+    sample_white_prop = float(h.my_counter(sample_sensitive_attributes_values, w_values)) / len(sample)
+    sample_black_prop = float(h.my_counter(sample_sensitive_attributes_values, b_values)) / len(sample)
+    sample_asian_prop = float(h.my_counter(sample_sensitive_attributes_values, a_values)) / len(sample)
+    sample_other_prop = float(h.my_counter(sample_sensitive_attributes_values, o_values)) / len(sample)
+    sample_native_a_prop = float(h.my_counter(sample_sensitive_attributes_values, n_values)) / len(sample)
 
     props_x = [total_white_prop, total_black_prop, total_asian_prop, total_other_prop, total_native_a_prop,
                sample_white_prop, sample_black_prop, sample_asian_prop, sample_other_prop, sample_native_a_prop]
@@ -226,7 +277,7 @@ def autolabel(ax, rects):
                 ha='center', va='bottom')
 
 
-def plot_multi_bars(ax, fig, rects, rects_keys, rects_values, sensitive_a, div_attribute, k_perc, width=0.1):
+def plot_multi_bars(ax, fig, ind, rects, rects_keys, rects_values, sensitive_a, div_attribute, k_perc, no_records, width=0.1):
     width = width  # the width of the bars
 
     # add some text for labels, title and axes ticks
@@ -240,25 +291,62 @@ def plot_multi_bars(ax, fig, rects, rects_keys, rects_values, sensitive_a, div_a
 
     for rect in rects:
         autolabel(ax, rect)
-    fig.savefig("./data/results/" + div_attribute + "_" + sensitive_a + "_proportions_kperc_"+str(k_perc))
-    # fig.savefig("./data/results/" + div_attribute + "_" + sensitive_a + "_proportions_ss_1000")
+    # fig.savefig("./data/kdd_census/results/" + div_attribute + "_" + sensitive_a + "_proportions_kperc_"+str(k_perc) +
+    #             "_records_"+str(no_records)+".png")
+    fig.savefig(
+        "./data/kdd_census/results/multi_variable/" + div_attribute + "_" + sensitive_a + "_proportions_kperc_" + str(
+            k_perc) +
+        "_records_" + str(no_records) + ".png")
+    # fig.savefig("./data/kdd_census/results/" + div_attribute + "_" + sensitive_a + "_proportions_ss_1000")
     plt.show()
 
-k_perc = 5
-all_data, data_sample, div_attribute = sample_on(1000, "relationship_num")
-gender_totals = compute_gender_proportions(all_data, data_sample)
-# racial_totals = compute_racial_proportions(all_data, data_sample)
-marital_totals = compute_marital_proportions(all_data, data_sample)
+# k_perc = 40
+# no_of_records = 20
 
-# plot
 
-N = 2  # number of groups
-ind = np.arange(N)  # the x locations for the groups
-figure, axes = plt.subplots()
-# g_rects, g_rect_keys, g_rect_values = build_gender_rects(gender_totals, axes, ind)
-# plot_multi_bars(axes, figure, g_rects, g_rect_keys, g_rect_values, "gender", "capital_loss", k_perc)
 # plot_multi_bars(axes, figure, g_rects, g_rect_keys, g_rect_values, "marital_status", "hours_per_week", k_perc)
-# r_rects, r_rect_keys, r_rect_values = build_race_rects(racial_totals, axes, ind)
-# plot_multi_bars(axes, figure, r_rects, r_rect_keys, r_rect_values, "race", "capital_loss", k_perc)
-m_rects, m_rect_keys, m_rect_values = build_marital_rects(marital_totals, axes, ind)
-plot_multi_bars(axes, figure, m_rects, m_rect_keys, m_rect_values, "marital_status", "relationship_num", k_perc)
+# plot_multi_bars(axes, figure, r_rects, r_rect_keys, r_rect_values, "race", "capital_gain", k_perc, no_of_records)
+# m_rects, m_rect_keys, m_rect_values = build_marital_rects(marital_totals, axes, ind)
+# plot_multi_bars(axes, figure, m_rects, m_rect_keys, m_rect_values, "marital_status", "relationship_num", k_perc)
+
+
+def run(k_perc, no_of_records, dataset_name, diversification_a, sensitive_a):
+    all_data, data_sample, div_attribute = sample_on(k_perc, dataset_name, no_of_records, diversification_a)
+    print "data sample  = ", data_sample, "with length = ", len(data_sample)
+
+    # details for plotting
+    N = 2  # number of groups
+    ind = np.arange(N)  # the x locations for the groups
+    figure, axes = plt.subplots()
+
+    if sensitive_a.lower() == "gender":
+        totals = compute_gender_proportions(dataset_name, all_data, data_sample)
+        rects, rect_keys, rect_values = build_gender_rects(totals, axes, ind)
+
+    elif sensitive_a.lower() == "race":
+        totals = compute_racial_proportions(dataset_name, all_data, data_sample)
+        rects, rect_keys, rect_values = build_race_rects(totals, axes, ind)
+
+        # elif sensitive_a.lower() == "marital_status":
+        # totals = compute_marital_proportions(dataset_name, all_data, data_sample)
+
+    else:
+        totals = None
+        rects = None
+        rect_keys = None
+        rect_values = None
+
+    # plot
+    if totals is not None and rects is not None and rect_keys is not None and rect_values is not None:
+        plot_multi_bars(axes, figure, ind, rects, rect_keys, rect_values, sensitive_a, diversification_a, k_perc,
+                        no_of_records)
+
+
+perc = 20
+records = 40000
+dataset = "census"
+div_a = "year_weeks"
+sens_a = "race"
+
+
+run(perc, records, dataset, div_a, sens_a)

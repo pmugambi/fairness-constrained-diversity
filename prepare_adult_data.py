@@ -45,8 +45,21 @@ def assign_relationship_num(relationship):
 
 def assign_race_num(race):
     races = ["white", "asian-pac-islander", "amer-indian-eskimo", "other", "black"]
-    if race in races:
-        return races.index(race)
+    w_values = ["white"]
+    b_values = ["black"]
+    n_values = ["amer-indian-eskimo", "amer indian aleut or eskimo"]
+    a_values = ["asian-pac-islander", "asian or pacific islander"]
+    o_values = ["others"]
+    if race in w_values:
+        return races.index("white")
+    elif race in b_values:
+        return races.index("black")
+    elif race in n_values:
+        return races.index("amer-indian-eskimo")
+    elif race in a_values:
+        return races.index("asian-pac-islander")
+    elif race in o_values:
+        return races.index("other")
     else:
         return -1
 
@@ -86,7 +99,7 @@ def process(count, columns=None):
     if columns is None:
         columns = ["all"]
 
-    print "columns = ", columns
+    # print "columns = ", columns
     processed_data = []
     data = read_data()
     # print "data = ", data

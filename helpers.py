@@ -1,7 +1,7 @@
-def my_counter(l, value):
+def my_counter(l, value_list):
     count = 0
     for i in l:
-        if i == value:
+        if i in value_list:
             count = count + 1
     return count
 
@@ -9,7 +9,5 @@ def my_counter(l, value):
 def list_of_lists_to_list(list_of_lists):
     l = []
     for i in list_of_lists:
-        # print i
         l.append(i[0])
-    # print l
     return l
