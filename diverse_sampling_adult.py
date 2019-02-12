@@ -61,6 +61,7 @@ def sample_on(perc, data_set, x, diversification_attribute):
         # data1 = pkcd.process(x, diversification_attribute)  # obtain data based on diversification attribute
         data2 = pkcd.process(x, "gender_num")
         data2 = pkcd.process(x, "race_num")
+        data2 = pkcd.process(x, "marital_status_num")
 
         data = pkcd.process(x, diversification_attribute)
         div_vals = pkcd.process(x, diversification_attribute)
@@ -145,36 +146,50 @@ def compute_racial_proportions(data_set, total_data, sample):
     return props_x
 
 
-def compute_marital_proportions(total_data, sample):
-    fairness_attributes = pad.obtain_sensitive_attributes_columns(["marital_status"])
+def compute_marital_proportions(data_set, total_data, sample):
+    if data_set.lower() == "adult":
+        fairness_attributes = pad.obtain_sensitive_attributes_columns(["marital_status"])
+    else:
+        fairness_attributes = pkcd.obtain_sensitive_attributes_columns(["marital_status"])
+
+    print "fairness attribute obtained = ", fairness_attributes
+
+    nevermarried_values = ["never-married", "never married"]
+    marriedciv_values = ["married-civilian spouse present", "married-civ-spouse"]
+    marriedabsentspouse_values = ["married-spouse absent", "married-spouse-absent"]
+    separated_values = ["separated"]
+    divorced_values = ["divorced"]
+    widowed_values = ["widowed"]
+    marriedaf_values = ["married-a f spouse present", "married-af-spouse"]
+
     sample_sensitive_attributes_values = evaluate_fairness(total_data, sample, fairness_attributes)
 
     total_married_civ_spouse_prop = float(
-        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "married-civ-spouse")) / len(total_data)
-    total_divorced_prop = float(h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "divorced")) / len(
+        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), marriedciv_values)) / len(total_data)
+    total_divorced_prop = float(h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), divorced_values)) / len(
         total_data)
     total_never_married_prop = float(
-        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "never-married")) / len(
+        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), nevermarried_values)) / len(
         total_data)
-    total_separated_prop = float(h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "separated")) / len(
+    total_separated_prop = float(h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), separated_values)) / len(
         total_data)
     total_widowed_prop = float(
-        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "widowed")) / len(
+        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), widowed_values)) / len(
         total_data)
     total_married_spouse_absent_prop = float(
-        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "married-spouse-absent")) / len(
+        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), marriedabsentspouse_values)) / len(
         total_data)
     total_married_af_spouse_prop = float(
-        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), "married-af-spouse")) / len(
+        h.my_counter(pad.compute_proportions(total_data, fairness_attributes[0]), marriedaf_values)) / len(
         total_data)
 
-    sample_married_civ_spouse_prop = float(h.my_counter(sample_sensitive_attributes_values, "married-civ-spouse")) / len(sample)
-    sample_divorced_prop = float(h.my_counter(sample_sensitive_attributes_values, "divorced")) / len(sample)
-    sample_never_married_prop = float(h.my_counter(sample_sensitive_attributes_values, "never-married")) / len(sample)
-    sample_separated_prop = float(h.my_counter(sample_sensitive_attributes_values, "separated")) / len(sample)
-    sample_widowed_prop = float(h.my_counter(sample_sensitive_attributes_values, "widowed")) / len(sample)
-    sample_married_spouse_absent_prop = float(h.my_counter(sample_sensitive_attributes_values, "married-spouse-absent")) / len(sample)
-    sample_married_af_spouse_prop = float(h.my_counter(sample_sensitive_attributes_values, "married-af-spouse")) / len(sample)
+    sample_married_civ_spouse_prop = float(h.my_counter(sample_sensitive_attributes_values, marriedciv_values)) / len(sample)
+    sample_divorced_prop = float(h.my_counter(sample_sensitive_attributes_values, divorced_values)) / len(sample)
+    sample_never_married_prop = float(h.my_counter(sample_sensitive_attributes_values, nevermarried_values)) / len(sample)
+    sample_separated_prop = float(h.my_counter(sample_sensitive_attributes_values, separated_values)) / len(sample)
+    sample_widowed_prop = float(h.my_counter(sample_sensitive_attributes_values, widowed_values)) / len(sample)
+    sample_married_spouse_absent_prop = float(h.my_counter(sample_sensitive_attributes_values, marriedabsentspouse_values)) / len(sample)
+    sample_married_af_spouse_prop = float(h.my_counter(sample_sensitive_attributes_values, marriedaf_values)) / len(sample)
 
     props_x = [total_married_civ_spouse_prop, total_divorced_prop, total_never_married_prop, total_separated_prop,
                total_widowed_prop, total_married_spouse_absent_prop, total_married_af_spouse_prop,
@@ -327,8 +342,9 @@ def run(k_perc, no_of_records, dataset_name, diversification_a, sensitive_a):
         totals = compute_racial_proportions(dataset_name, all_data, data_sample)
         rects, rect_keys, rect_values = build_race_rects(totals, axes, ind)
 
-        # elif sensitive_a.lower() == "marital_status":
-        # totals = compute_marital_proportions(dataset_name, all_data, data_sample)
+    elif sensitive_a.lower() == "marital_status":
+        totals = compute_marital_proportions(dataset_name, all_data, data_sample)
+        rects, rect_keys, rect_values = build_marital_rects(totals, axes, ind)
 
     else:
         totals = None
@@ -346,7 +362,7 @@ perc = 20
 records = 40000
 dataset = "census"
 div_a = "year_weeks"
-sens_a = "race"
+sens_a = "marital_status"
 
 
 run(perc, records, dataset, div_a, sens_a)

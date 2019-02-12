@@ -101,6 +101,7 @@ def process(count, column_name):
         work_class = line[1].strip().lower()
         industry_code = float(line[2].strip())
         occupation_code = float(line[3].strip())
+        marital_status = line[7].strip().lower()
         gender = line[12].strip().lower()
         race = line[10].strip().lower()
         capital_gain = float(line[16].strip())
@@ -128,6 +129,8 @@ def process(count, column_name):
             num_row.append(pad.assign_gender_num(gender))
         if column_name.lower() == "race_num":
             num_row.append(pad.assign_race_num(race))
+        if column_name.lower() == "marital_status_num":
+            num_row.append(pad.assign_marital_status_num(marital_status))
         if column_name.lower() == "gender":
             num_row.append(gender)
         if column_name.lower() == "year_weeks":
@@ -136,6 +139,46 @@ def process(count, column_name):
         processed_data.append(num_row)
     return processed_data
 
+
+def draw_histogram(data):
+    import numpy as np
+    import matplotlib.mlab as mlab
+    import matplotlib.pyplot as plt
+    from scipy.stats import norm
+
+
+    # mu, sigma = 100, 15
+    # x = mu + sigma * np.random.randn(10000)
+    d = np.asmatrix(np.array(data))
+    print "data as a matrix = ", d
+
+    # the histogram of the data
+    n, bins, patches = plt.hist(d, 10, normed=1, facecolor='green', alpha=0.75)
+    # n, bins, patches = plt.hist(d, 10)
+
+    print "bins = ", bins
+
+    mu = np.mean(d, axis=0)[0][0]
+    sigma = np.std(d, axis=0)[0][0]
+
+    (mu, sigma) = norm.fit(data)
+
+    print "mean, std = ", mu, sigma
+
+    # add a 'best fit' line
+    y = mlab.normpdf(bins, mu, sigma)
+    l = plt.plot(bins, y, 'r--', linewidth=1)
+
+    plt.xlabel('Smarts')
+    plt.ylabel('Probability')
+    plt.title(r'$\mathrm{Histogram\ of\ Capital Gain:}\ \mu='+str(mu)+',\ \sigma='+str(sigma)+'$')
+    # plt.axis([-5, 55, 0, 0.1])
+    plt.grid(False)
+
+    plt.show()
+
+# data = process(40000, "capital_gain")
+# draw_histogram(data)
 
 # d = read_test_data()
 # print d[0]

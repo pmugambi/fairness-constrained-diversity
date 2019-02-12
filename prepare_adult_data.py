@@ -19,8 +19,29 @@ def assign_work_class_num(work_class):
 def assign_marital_status_num(marital_status):
     marital_statuses = ["married-civ-spouse", "divorced", "never-married", "separated", "widowed",
                         "married-spouse-absent", "married-af-spouse"]
-    if marital_status in marital_statuses:
-        return marital_statuses.index(marital_status)
+
+    nevermarried_values = ["never-married", "never married"]
+    marriedciv_values = ["married-civilian spouse present", "married-civ-spouse"]
+    marriedabsentspouse_values = ["married-spouse absent", "married-spouse-absent"]
+    separated_values = ["separated"]
+    divorced_values = ["divorced"]
+    widowed_values = ["widowed"]
+    marriedaf_values = ["married-a f spouse present", "married-af-spouse"]
+
+    if marital_status in nevermarried_values:
+        return marital_statuses.index("never-married")
+    elif marital_status in marriedciv_values:
+        return marital_statuses.index("married-civ-spouse")
+    elif marital_status in marriedabsentspouse_values:
+        return marital_statuses.index("married-spouse-absent")
+    elif marital_status in separated_values:
+        return marital_statuses.index("separated")
+    elif marital_status in divorced_values:
+        return marital_statuses.index("divorced")
+    elif marital_status in widowed_values:
+        return marital_statuses.index("widowed")
+    elif marital_status in marriedaf_values:
+        return marital_statuses.index("married-af-spouse")
     else:
         return -1
 
