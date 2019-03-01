@@ -1,0 +1,204 @@
+## Recently deleted code pasted here, pending thorough testing of the system
+
+def greedy_diverse_2(d, k):
+    top_k = []
+    # pick first 2
+    min_d = min(d)
+    max_d = max(d)
+
+    max_diff = max_d - min_d
+
+    print "max diff ===== ", max_diff
+
+    distance_matrix = euclidean_normed_function(d, max_diff)
+
+    max_distance = np.max(distance_matrix)
+    print "max val  = ", max_distance
+
+    max_value_index = np.argmax(distance_matrix)
+    print "point 1 index = ", max_value_index
+    top_k.append(max_value_index)
+
+    point2_index = np.argwhere(distance_matrix[max_value_index, :] == max_distance)[0][0]
+    print "point 2 index = ", point2_index[0]
+    top_k.append(point2_index[0])
+
+    # max_distance_indices = np.where(distance_matrix == max_distance)[0]
+    #
+    # print "max_dist_indices = ", max_distance_indices
+    #
+    # # point 1's index
+    # print "point 1 index = ", max_distance_indices[0,0]
+    # print "point 2 index = ", max_distance_indices[0,1]
+    #
+    # top_k.append(max_distance_indices[0, 0])
+    # top_k.append(max_distance_indices[0, 1])
+
+    while len(top_k) < k:
+        # select matrix region of interest
+        rows = []
+        cols = []
+        for i in xrange(0, d.shape[0]):
+            if i in top_k:
+                rows.append(i)
+            else:
+                cols.append(i)
+
+        # obtain pairwise distances for region of interest
+        sub_matrix = distance_matrix[np.ix_(rows, cols)]
+        print "section of interest = ", sub_matrix
+
+        # obtain min distance for each point, with respect to the chosen points
+        # sub_max_min_dist_per_col = np.min(sub_matrix, axis=1)
+        # print "min distances per column = ", sub_max_min_dist_per_col
+
+        # obtain the point and add it to the sample
+        # sub_max_min_index = list(sub_max_min_dist_per_col).index(max(sub_max_min_dist_per_col))
+        # top_k.append(cols[sub_max_min_index])
+
+        sub_matrix_min_val_per_col = np.min(sub_matrix, axis=1)
+        print "sub-matrix minimum value per column  = ", sub_matrix_min_val_per_col
+
+        # obtain the point and add it to the sample
+        sub_matrix_max_value_row_index = list(sub_matrix_min_val_per_col).index(max(sub_matrix_min_val_per_col))
+        print "sub-matrix max minimum value row = ", sub_matrix_max_value_row_index
+
+        print "sub matrix row of interest = ", sub_matrix[sub_matrix_max_value_row_index]
+
+        print "this is what I want ", np.argwhere(sub_matrix[sub_matrix_max_value_row_index] ==
+                                               max(sub_matrix_min_val_per_col))
+
+        g = np.argwhere(sub_matrix[sub_matrix_max_value_row_index] ==
+                                               max(sub_matrix_min_val_per_col))
+
+        gs = get_column_numbers(g)
+
+        # print "item of interest = ", list(sub_matrix[sub_matrix_max_value_row_index]).index(max(sub_matrix_min_val_per_col))
+        #
+        # next_point_index = list(sub_matrix[sub_matrix_max_value_row_index]).index(max(sub_matrix_min_val_per_col))
+        next_point_index = 0
+
+        print "next point index 1 = ", next_point_index
+
+        for i in gs:
+            print "i = ", i
+            if i in top_k:
+                continue
+            else:
+                next_point_index = i
+                break
+        print "next point index 2 = ", next_point_index
+
+        top_k.append(cols[next_point_index])
+
+    print "final set = ", top_k
+    print "final set ordered  = ", sorted(top_k)
+    # remember to return
+
+    return top_k
+
+
+def greedy_diverse(d, k):
+    top_k = []
+
+    # pick first 2
+    min_distances, distance_matrix = dist_matrix(d)
+    distance_matrix = euclidean_normed_function(d, 50)
+
+    np.fill_diagonal(distance_matrix, 0)
+
+    print "distance matrix = ", list(distance_matrix)
+    max_min_value = np.max(distance_matrix)
+
+    print "max val  = ", max_min_value
+
+
+    # max(min_distances)
+    # max_min_index = list(min_distances).index(max(min_distances))
+    # max_min_index = list(distance_matrix).index(np.max(distance_matrix))
+    max_min_index = np.where(distance_matrix == max_min_value)[0]
+    # max_min_value = max(min_distances)
+
+
+    # point 1's index
+    print "point 1 index = ", max_min_value, max_min_index
+
+    top_k.append(max_min_index)
+
+    point2_index = np.argwhere(distance_matrix[max_min_index, :] == max_min_value)[0][0]
+    print "point 2 index = ", point2_index
+
+    top_k.append(point2_index)
+
+    while len(top_k) < k:
+        # select matrix region of interest
+        rows = []
+        cols = []
+        for i in xrange(0, d.shape[0]):
+            if i in top_k:
+                rows.append(i)
+            else:
+                cols.append(i)
+        # print "rows = ", rows, " and cols = ", cols
+
+        # obtain pairwise distances for region of interest
+        sub_matrix = distance_matrix[np.ix_(rows, cols)]
+        # print "section of interest = ", sub_matrix
+
+        # obtain min distance for each point, with respect to the chosen points
+        sub_max_min_dist_per_col = np.min(sub_matrix, axis=1)
+        # print "res = ", sub_max_min_dist_per_col
+
+        # obtain the point and add it to the sample
+        sub_max_min_index = list(sub_max_min_dist_per_col).index(max(sub_max_min_dist_per_col))
+        # print "sub mat max = ", sub_max_min_index
+        top_k.append(cols[sub_max_min_index])
+
+    print "final set = ", top_k
+    print "final set ordered  = ", sorted(top_k)
+    # remember to return
+
+    return top_k
+
+def dist_matrix(points):
+    dist_mat = squareform(pdist(points, metric="euclidean")) / 50
+    print "dist_mat = ", dist_mat
+
+    # mask the diagonal
+    np.fill_diagonal(dist_mat, np.nan)
+    # print "dist mat = ", dist_mat
+
+    # and calculate the minimum of each row (or column)
+    min_distances = np.nanmin(dist_mat, axis=1)
+    # print "min distances = ", min_distances
+
+    # print "distances = ", res
+    return min_distances, dist_mat
+
+def get_column_numbers(all_wheres):
+    cols = []
+    for i in all_wheres:
+        # print "i = ", i
+        col = i[0][1]
+        # print col
+        cols.append(col)
+    return cols
+
+def sample_diverse_k(data, k_perc):
+    # create a numpy matrix of the data
+    d = np.asmatrix(np.array(data))
+    print "length of data received = ", len(data), d.shape
+
+    # normalize columns
+    # d_normed = d / d.max(axis=0)
+    # print "normalized d = ", d_normed, np.asmatrix(d_normed)
+
+    # get 1% of the data
+    # k = math.ceil((k_perc * 0.0005) * len(data))
+    k = k_perc
+    print "k = ", k
+
+    top_k = gmm.greedy_diverse_2(d, k)
+    print top_k
+
+    return top_k

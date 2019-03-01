@@ -116,14 +116,13 @@ def assign_salary_num(salary):
         return -1
 
 
-def process(count, columns=None):
-    if columns is None:
-        columns = ["all"]
+def process(count, column=None):
+    if column is None:
+        column = "all"
 
-    # print "columns = ", columns
     processed_data = []
     data = read_data()
-    # print "data = ", data
+
     # for i in xrange(0, count):
     for i in xrange(0, len(data)):
         line = data[i].split(" ")
@@ -155,8 +154,7 @@ def process(count, columns=None):
         salary = line[14].replace("\n", "").lower()
         salary_num = assign_salary_num(salary)
 
-        all = "all"
-        if all in columns:
+        if column == "all":
             # num_row = [age, work_class_num, fnlwgt, education_num, marital_status_num,
             #            occupation_num, relationship_num, race_num, gender_num, capital_gain, capital_loss,
             #            hours_per_week,
@@ -166,53 +164,52 @@ def process(count, columns=None):
                        capital_gain, capital_loss, hours_per_week, native_country, salary]
         else:
             num_row = []
-            for column in columns:
-                if column.lower() == "age":
-                    num_row.append(age)
-                if column.lower() == "work_class":
-                    num_row.append(work_class)
-                if column.lower() == "fnlwgt":
-                    num_row.append(fnlwgt)
-                if column.lower() == "education":
-                    num_row.append(education)
-                if column.lower() == "education_num":
-                    num_row.append(education_num)
-                if column.lower() == "marital_status":
-                    num_row.append(marital_status)
-                if column.lower() == "occupation":
-                    num_row.append(occupation)
-                if column.lower() == "relationship":
-                    num_row.append(relationship)
-                if column.lower() == "race":
-                    num_row.append(race)
-                if column.lower() == "gender":
-                    num_row.append(gender)
-                if column.lower() == "capital_gain":
-                    num_row.append(capital_gain)
-                if column.lower() == "capital_loss":
-                    num_row.append(capital_loss)
-                if column.lower() == "hours_per_week":
-                    num_row.append(hours_per_week)
-                if column.lower() == "native_country":
-                    num_row.append(native_country)
-                if column.lower() == "salary":
-                    num_row.append(salary)
-                if column.lower() == "gender_num":
-                    num_row.append(gender_num)
-                if column.lower() == "work_class_num":
-                    num_row.append(work_class_num)
-                if column.lower() == "marital_status_num":
-                    num_row.append(marital_status_num)
-                if column.lower() == "occupation_num":
-                    num_row.append(occupation_num)
-                if column.lower() == "relationship_num":
-                    num_row.append(relationship_num)
-                if column.lower() == "race_num":
-                    num_row.append(race_num)
-                if column.lower() == "native_country_num":
-                    num_row.append(native_country_num)
-                # else:
-                #     print "column ", column, " not found"
+            if column.lower() == "age":
+                num_row.append(age)
+            if column.lower() == "work_class":
+                num_row.append(work_class)
+            if column.lower() == "fnlwgt":
+                num_row.append(fnlwgt)
+            if column.lower() == "education":
+                num_row.append(education)
+            if column.lower() == "education_num":
+                num_row.append(education_num)
+            if column.lower() == "marital_status":
+                num_row.append(marital_status)
+            if column.lower() == "occupation":
+                num_row.append(occupation)
+            if column.lower() == "relationship":
+                num_row.append(relationship)
+            if column.lower() == "race":
+                num_row.append(race)
+            if column.lower() == "gender":
+                num_row.append(gender)
+            if column.lower() == "capital_gain":
+                num_row.append(capital_gain)
+            if column.lower() == "capital_loss":
+                num_row.append(capital_loss)
+            if column.lower() == "hours_per_week":
+                num_row.append(hours_per_week)
+            if column.lower() == "native_country":
+                num_row.append(native_country)
+            if column.lower() == "salary":
+                num_row.append(salary)
+            if column.lower() == "gender_num":
+                num_row.append(gender_num)
+            if column.lower() == "work_class_num":
+                num_row.append(work_class_num)
+            if column.lower() == "marital_status_num":
+                num_row.append(marital_status_num)
+            if column.lower() == "occupation_num":
+                num_row.append(occupation_num)
+            if column.lower() == "relationship_num":
+                num_row.append(relationship_num)
+            if column.lower() == "race_num":
+                num_row.append(race_num)
+            if column.lower() == "native_country_num":
+                num_row.append(native_country_num)
+            # else:
+            #     print "column ", column, " not found"
 
         # print num_row
         processed_data.append(num_row)
@@ -220,15 +217,14 @@ def process(count, columns=None):
     return processed_data
 
 
-def obtain_sensitive_attributes_columns(sensitive_attributes):
+def obtain_sensitive_attribute_column(sensitive_attribute):
     cols = []
-    for sa in sensitive_attributes:
-        if sa.lower() == "gender":
-            cols.append(8)
-        if sa.lower() == "race":
-            cols.append(7)
-        if sa.lower() == "marital_status":
-            cols.append(4)
+    if sensitive_attribute.lower() == "gender":
+        cols.append(8)
+    if sensitive_attribute.lower() == "race":
+        cols.append(7)
+    if sensitive_attribute.lower() == "marital_status":
+        cols.append(4)
     return cols
 
 

@@ -14,15 +14,14 @@ def read_test_data():
         return lines
 
 
-def obtain_sensitive_attributes_columns(sensitive_attributes):
+def obtain_sensitive_attribute_column(sensitive_attribute):
     cols = []
-    for sa in sensitive_attributes:
-        if sa.lower() == "gender":
-            cols.append(12)
-        if sa.lower() == "race":
-            cols.append(10)
-        if sa.lower() == "marital_status":
-            cols.append(7)
+    if sensitive_attribute.lower() == "gender":
+        cols.append(12)
+    if sensitive_attribute.lower() == "race":
+        cols.append(10)
+    if sensitive_attribute.lower() == "marital_status":
+        cols.append(7)
     return cols
 
 
@@ -137,6 +136,7 @@ def process(count, column_name):
             num_row.append(weeks_worked_in_year)
 
         processed_data.append(num_row)
+    # print "processed data  = ", processed_data
     return processed_data
 
 
