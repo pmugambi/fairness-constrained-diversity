@@ -1,6 +1,7 @@
 import numpy as np
 import prepare_adult_data as pad
 import prepare_kdd_census_data as pkcd
+import prepare_banking_data as pbd
 import gmm as gmm
 import gms as gms
 import math
@@ -23,9 +24,9 @@ def get_highest_value(data):
 def sample_mixed_data_diverse_k(con_data, cat_data, norm_val, k, weight_1, weight_2, algorithm):
     con_d = np.asmatrix(np.array(con_data))
     cat_d = np.asmatrix(np.array(cat_data))
-    if algorithm == "maxmin":
+    if algorithm == "max_min":
         top_k = gmm.greedy_diverse_mod(con_d, cat_d, norm_val, k, weight_1, weight_2)
-    elif algorithm == "maxsum":
+    elif algorithm == "max_sum":
         top_k = gms.greedy_diverse_mod(con_d, cat_d, norm_val, k, weight_1, weight_2)
     # print top_k
     else:
@@ -69,6 +70,10 @@ def sample_on(perc, data_set, x, con_diversification_attribute, cat_diversificat
         total_data = pkcd.clean_rows(x)
         con_data = pkcd.process(x, con_diversification_attribute)  # obtain data based on diversification attribute
         cat_data = pkcd.process(x, cat_diversification_attribute)
+    elif dataset.lower() == "bank":
+        total_data = pbd.clean_rows(x)
+        con_data = pbd.process(x, con_diversification_attribute)
+        cat_data = pbd.process(x, cat_diversification_attribute)
 
     norm_by = normalize_by_value(normalization_method, con_data)
     sample = sample_mixed_data_diverse_k(con_data, cat_data, norm_by, perc, weight_1, weight_2, algorithm)
@@ -78,9 +83,9 @@ def sample_on(perc, data_set, x, con_diversification_attribute, cat_diversificat
 
 def compute_gender_proportions(data_set, total_data, sample):
     if data_set.lower() == "adult":
-        fairness_attribute = pad.obtain_sensitive_attribute_column("gender")[0]
+        fairness_attribute = pad.obtain_sensitive_attribute_column("gender_2")[0]
     else:
-        fairness_attribute = pkcd.obtain_sensitive_attribute_column("gender")[0]
+        fairness_attribute = pkcd.obtain_sensitive_attribute_column("gender_2")[0]
 
     sample_sensitive_attribute_values = evaluate_fairness(total_data, sample, fairness_attribute)
 
@@ -97,7 +102,7 @@ def compute_gender_proportions(data_set, total_data, sample):
 
     props_x = [total_male_prop, total_female_prop, sample_male_prop, sample_female_prop]
 
-    print "gender proportions = ", props_x
+    print "gender_2 proportions = ", props_x
     return props_x
 
 
@@ -141,11 +146,13 @@ def compute_racial_proportions(data_set, total_data, sample):
 def compute_marital_proportions(data_set, total_data, sample):
     if data_set.lower() == "adult":
         fairness_attribute = pad.obtain_sensitive_attribute_column("marital_status")[0]
-    else:
+    elif dataset.lower() == "census":
         fairness_attribute = pkcd.obtain_sensitive_attribute_column("marital_status")[0]
+    else: # remember to remove this hard-coding for bank dataset
+        fairness_attribute = 2
 
-    nevermarried_values = ["never-married", "never married"]
-    marriedciv_values = ["married-civilian spouse present", "married-civ-spouse"]
+    nevermarried_values = ["never-married", "never married", "single"]  # added 'single' due to the banking dataset
+    marriedciv_values = ["married-civilian spouse present", "married-civ-spouse", "married"] # added 'married' due to the banking dataset
     marriedabsentspouse_values = ["married-spouse absent", "married-spouse-absent"]
     separated_values = ["separated"]
     divorced_values = ["divorced"]
@@ -187,6 +194,11 @@ def compute_marital_proportions(data_set, total_data, sample):
                sample_separated_prop, sample_widowed_prop, sample_married_spouse_absent_prop,
                sample_married_af_spouse_prop]
 
+    # Only useful for the
+    if dataset.lower() == "bank":
+        props_x = [total_married_civ_spouse_prop, total_divorced_prop, total_never_married_prop,
+                   sample_married_civ_spouse_prop, sample_divorced_prop, sample_never_married_prop]
+
     print "marital proportions = ", props_x
     return props_x
 
@@ -205,41 +217,100 @@ def build_gender_rects(gender_props, ax, ind, width=0.35):
     return y, rect_keys, rect_values
 
 
-def build_marital_rects(marital_props, ax, ind, width=0.1):
-    married_civ_spouse_std = (2, 3)
-    married_civ_spouse_props = (marital_props[0] * 100, marital_props[7] * 100)
-    rects1 = ax.bar(ind, married_civ_spouse_props, width, color='r', yerr=married_civ_spouse_std)
+# def build_marital_rects(marital_props, ax, ind, width=0.1):
+#     print "marital props = ", marital_props
+#     married_civ_spouse_std = (2, 3)
+#     married_civ_spouse_props = (marital_props[0] * 100, marital_props[7] * 100)
+#     rects1 = ax.bar(ind, married_civ_spouse_props, width, color='r', yerr=married_civ_spouse_std)
+#
+#     divorced_props = (marital_props[1] * 100, marital_props[8] * 100)
+#     divorced_std = (3, 5)
+#     rects2 = ax.bar(ind + width, divorced_props, width, color='y', yerr=divorced_std)
+#
+#     never_married_props = (marital_props[2] * 100, marital_props[9] * 100)
+#     never_married_std = (3, 5)
+#     rects3 = ax.bar(ind + 2 * width, never_married_props, width, color='g', yerr=never_married_std)
+#
+#     separated_props = (marital_props[3] * 100, marital_props[10] * 100)
+#     separated_std = (3, 5)
+#     rects4 = ax.bar(ind + 3 * width, separated_props, width, color='c', yerr=separated_std)
+#
+#     widowed_props = (marital_props[4] * 100, marital_props[11] * 100)
+#     widowed_std = (3, 5)
+#     rects5 = ax.bar(ind + 4 * width, widowed_props, width, color='b', yerr=widowed_std)
+#
+#     married_spouse_absent_props = (marital_props[5] * 100, marital_props[12] * 100)
+#     married_spouse_absent_std = (3, 5)
+#     rects6 = ax.bar(ind + 5 * width, married_spouse_absent_props, width, color='w', yerr=married_spouse_absent_std)
+#
+#     married_af_spouse_props = (marital_props[6] * 100, marital_props[13] * 100)
+#     married_af_spouse_std = (3, 5)
+#     rects7 = ax.bar(ind + 6 * width, married_af_spouse_props, width, color='k', yerr=married_af_spouse_std)
+#
+#     y = [rects1, rects2, rects3, rects4, rects5, rects6, rects7]
+#     rect_keys = (rects1[0], rects2[0], rects3[0], rects4[0], rects5[0], rects6[0], rects7[0])
+#     rect_values = ('Married-civ-spouse', 'Divorced', 'Never-married', 'Separated', 'Widowed', 'Married-spouse-absent',
+#                    'Married-AF-spouse')
+#     rect_values = ('m_civ_spouse', 'divorced', 'never_m', 'separated', 'widowed', 'm_spouse_absent',
+#                    'm_af_spouse')
+#
+#     return y, rect_keys, rect_values
 
-    divorced_props = (marital_props[1] * 100, marital_props[8] * 100)
-    divorced_std = (3, 5)
-    rects2 = ax.bar(ind + width, divorced_props, width, color='y', yerr=divorced_std)
 
-    never_married_props = (marital_props[2] * 100, marital_props[9] * 100)
-    never_married_std = (3, 5)
-    rects3 = ax.bar(ind + 2 * width, never_married_props, width, color='g', yerr=never_married_std)
+def build_marital_rects(dataset, marital_props, ax, ind, width=0.1):
+    print "marital props = ", marital_props
+    if dataset == "bank":
+        married_std = (2,3)
+        married_props = (marital_props[0] * 100, marital_props[3] * 100)
+        rects1 = ax.bar(ind, married_props, width, color='r', yerr=married_std)
 
-    separated_props = (marital_props[3] * 100, marital_props[10] * 100)
-    separated_std = (3, 5)
-    rects4 = ax.bar(ind + 3 * width, separated_props, width, color='c', yerr=separated_std)
+        divorced_std = (3, 5)
+        divorced_props = (marital_props[1] * 100, marital_props[4] * 100)
+        rects2 = ax.bar(ind, divorced_props, width, color='g', yerr=divorced_std)
 
-    widowed_props = (marital_props[4] * 100, marital_props[11] * 100)
-    widowed_std = (3, 5)
-    rects5 = ax.bar(ind + 4 * width, widowed_props, width, color='b', yerr=widowed_std)
+        single_std = (3, 5)
+        single_props = (marital_props[2] * 100, marital_props[5] * 100)
+        rects3 = ax.bar(ind, single_props, width, color='b', yerr=single_std)
 
-    married_spouse_absent_props = (marital_props[5] * 100, marital_props[12] * 100)
-    married_spouse_absent_std = (3, 5)
-    rects6 = ax.bar(ind + 5 * width, married_spouse_absent_props, width, color='w', yerr=married_spouse_absent_std)
+        y = [rects1, rects2, rects3]
+        rect_keys = (rects1[0], rects2[0], rects3[0])
+        rect_values = ("married", "divorced", "single")
 
-    married_af_spouse_props = (marital_props[6] * 100, marital_props[13] * 100)
-    married_af_spouse_std = (3, 5)
-    rects7 = ax.bar(ind + 6 * width, married_af_spouse_props, width, color='k', yerr=married_af_spouse_std)
+    else:
+        married_civ_spouse_std = (2, 3)
+        married_civ_spouse_props = (marital_props[0] * 100, marital_props[7] * 100)
+        rects1 = ax.bar(ind, married_civ_spouse_props, width, color='r', yerr=married_civ_spouse_std)
 
-    y = [rects1, rects2, rects3, rects4, rects5, rects6, rects7]
-    rect_keys = (rects1[0], rects2[0], rects3[0], rects4[0], rects5[0], rects6[0], rects7[0])
-    rect_values = ('Married-civ-spouse', 'Divorced', 'Never-married', 'Separated', 'Widowed', 'Married-spouse-absent',
-                   'Married-AF-spouse')
-    rect_values = ('m_civ_spouse', 'divorced', 'never_m', 'separated', 'widowed', 'm_spouse_absent',
-                   'm_af_spouse')
+        divorced_props = (marital_props[1] * 100, marital_props[8] * 100)
+        divorced_std = (3, 5)
+        rects2 = ax.bar(ind + width, divorced_props, width, color='y', yerr=divorced_std)
+
+        never_married_props = (marital_props[2] * 100, marital_props[9] * 100)
+        never_married_std = (3, 5)
+        rects3 = ax.bar(ind + 2 * width, never_married_props, width, color='g', yerr=never_married_std)
+
+        separated_props = (marital_props[3] * 100, marital_props[10] * 100)
+        separated_std = (3, 5)
+        rects4 = ax.bar(ind + 3 * width, separated_props, width, color='c', yerr=separated_std)
+
+        widowed_props = (marital_props[4] * 100, marital_props[11] * 100)
+        widowed_std = (3, 5)
+        rects5 = ax.bar(ind + 4 * width, widowed_props, width, color='b', yerr=widowed_std)
+
+        married_spouse_absent_props = (marital_props[5] * 100, marital_props[12] * 100)
+        married_spouse_absent_std = (3, 5)
+        rects6 = ax.bar(ind + 5 * width, married_spouse_absent_props, width, color='w', yerr=married_spouse_absent_std)
+
+        married_af_spouse_props = (marital_props[6] * 100, marital_props[13] * 100)
+        married_af_spouse_std = (3, 5)
+        rects7 = ax.bar(ind + 6 * width, married_af_spouse_props, width, color='k', yerr=married_af_spouse_std)
+
+        y = [rects1, rects2, rects3, rects4, rects5, rects6, rects7]
+        rect_keys = (rects1[0], rects2[0], rects3[0], rects4[0], rects5[0], rects6[0], rects7[0])
+        rect_values = ('Married-civ-spouse', 'Divorced', 'Never-married', 'Separated', 'Widowed', 'Married-spouse-absent',
+                       'Married-AF-spouse')
+        rect_values = ('m_civ_spouse', 'divorced', 'never_m', 'separated', 'widowed', 'm_spouse_absent',
+                       'm_af_spouse')
 
     return y, rect_keys, rect_values
 
@@ -339,6 +410,8 @@ def obtain_sampled_values(all_data, data_sample, variable_name):
         variable_index = 38
     elif variable_name == "age":
         variable_index = 0
+    elif variable_name == "balance":
+        variable_index = 5
     else:
         variable_index = None
 
@@ -362,7 +435,7 @@ def run(k_perc, no_of_records, dataset_name, con_diversification_a, cat_diversif
     ind = np.arange(N)  # the x locations for the groups
     figure, axes = plt.subplots()
 
-    if sensitive_a.lower() == "gender":
+    if sensitive_a.lower() == "gender_2":
         totals = compute_gender_proportions(dataset_name, all_data, data_sample)
         rects, rect_keys, rect_values = build_gender_rects(totals, axes, ind)
 
@@ -372,7 +445,7 @@ def run(k_perc, no_of_records, dataset_name, con_diversification_a, cat_diversif
 
     elif sensitive_a.lower() == "marital_status":
         totals = compute_marital_proportions(dataset_name, all_data, data_sample)
-        rects, rect_keys, rect_values = build_marital_rects(totals, axes, ind)
+        rects, rect_keys, rect_values = build_marital_rects(dataset_name, totals, axes, ind)
 
     else:
         totals = None
@@ -389,14 +462,16 @@ def run(k_perc, no_of_records, dataset_name, con_diversification_a, cat_diversif
         plot_multi_bars(axes, figure, ind, rects, rect_keys, rect_values, sensitive_a, con_diversification_a, k_perc,
                         no_of_records, fig_save_path)
 
+    return totals
+
 
 def run2(k_perc, no_of_records, dataset_name, con_diversification_a, cat_diversification_a, sensitive_a,
          normalization_method, algorithm):
-    alls = []
+    gmm_alls = []
     diversity_scores = []
     for i in xrange(0, 11):
         weight_1 = float(i)/float(10)
-        weight_2 = 1 - w1
+        weight_2 = 1 - weight_1
         all_data, data_sample, con_div_attribute, cat_div_attribute = sample_on(k_perc, dataset_name, no_of_records,
                                                                                 con_diversification_a,
                                                                                 cat_diversification_a, weight_1,
@@ -418,7 +493,7 @@ def run2(k_perc, no_of_records, dataset_name, con_diversification_a, cat_diversi
             totals = None
         start = (len(totals)/2)
         gmm_totals = totals[start:]
-        alls.append(gmm_totals)
+        gmm_alls.append(gmm_totals)
 
         sampled_values = obtain_sampled_values(all_data, data_sample, con_diversification_a)
         diversity_score = compute_div_score(np.asmatrix(np.array(sample_to_list_of_lists(sampled_values))))
@@ -426,14 +501,14 @@ def run2(k_perc, no_of_records, dataset_name, con_diversification_a, cat_diversi
 
         diversity_scores.append(diversity_score)
 
-        print "w1= ", str(w1), " w2= ", str(w2), " totals = ", totals
-    print "all totals = ", alls
+        print "w1= ", str(weight_1), " w2= ", str(weight_2), " totals = ", totals
+    print "all gmm totals = ", gmm_alls
     print "diversity scores = ", diversity_scores
 
-    return alls, diversity_scores
+    return gmm_alls, diversity_scores
 
 
-def plot_with_line(k_perc, no_of_records, dataset_name, diversification_a, sensitive_a, normalization_method,
+def plot_with_line(k_perc, no_of_records, dataset_name, con_diversification_a, cat_diversification_a, sensitive_a, normalization_method,
                    algorithm, fig_save_path):
     ind = np.arange(11)
     figure, axes = plt.subplots()
@@ -448,32 +523,40 @@ def plot_with_line(k_perc, no_of_records, dataset_name, diversification_a, sensi
     avg_bar4 = []
     avg_bar5 = []
 
-    totals, div_scores = run2(k_perc, no_of_records, dataset_name, diversification_a, sensitive_a,
-                              normalization_method, algorithm)
+    totals, div_scores = run2(k_perc, no_of_records, dataset_name, con_diversification_a, cat_diversification_a,
+                              sensitive_a, normalization_method, algorithm)
 
     for i in totals:
         avg_bar1.append(i[0] * 100)
         avg_bar2.append(i[1] * 100)
         avg_bar3.append(i[2] * 100)
-        avg_bar4.append(i[3] * 100)
-        avg_bar5.append(i[4] * 100)
+        # avg_bar4.append(i[3] * 100)
+        # avg_bar5.append(i[4] * 100)
 
     # rects1 = plt.bar(ind, avg_bar1, 0.15, color='#ff0000', label='male')
-    rects1 = plt.bar(ind, avg_bar1, 0.20, color='#ff0000', label='white')
     # rects2 = plt.bar(ind + 0.15, avg_bar2, 0.15, color='#00ff00', label='female')
-    rects2 = plt.bar(ind + 0.20, avg_bar2, 0.20, color='#00ff00', label='black')
-    rects3 = plt.bar(ind + 0.40, avg_bar3, 0.20, color='blue', label='asian')
-    rects4 = plt.bar(ind + 0.60, avg_bar4, 0.20, color='cyan', label='native')
-    rects5 = plt.bar(ind + 0.80, avg_bar5, 0.20, color='grey', label='other')
+
+    # rect_values = ('m_civ_spouse', 'divorced', 'never_m', 'separated', 'widowed', 'm_spouse_absent',
+    #                'm_af_spouse')
+
+    rects1 = plt.bar(ind, avg_bar1, 0.20, color='#ff0000', label='married')
+    rects2 = plt.bar(ind + 0.20, avg_bar2, 0.20, color='#00ff00', label='divorced')
+    rects3 = plt.bar(ind + 0.40, avg_bar3, 0.20, color='blue', label='single')
+
+    # rects1 = plt.bar(ind, avg_bar1, 0.20, color='#ff0000', label='white')
+    # rects2 = plt.bar(ind + 0.20, avg_bar2, 0.20, color='#00ff00', label='black')
+    # rects3 = plt.bar(ind + 0.40, avg_bar3, 0.20, color='blue', label='asian')
+    # rects4 = plt.bar(ind + 0.60, avg_bar4, 0.20, color='cyan', label='native')
+    # rects5 = plt.bar(ind + 0.80, avg_bar5, 0.20, color='grey', label='other')
 
     high_point_x = []
     high_point_y = []
     for i in range(0, 11):
         single_bar_group = {rects1[i].get_height(): rects1[i].get_x() + rects1[i].get_width() / 2.0,
                             rects2[i].get_height(): rects2[i].get_x() + rects2[i].get_width() / 2.0,
-                            rects3[i].get_height(): rects3[i].get_x() + rects3[i].get_width() / 2.0,
-                            rects4[i].get_height(): rects4[i].get_x() + rects4[i].get_width() / 2.0,
-                            rects5[i].get_height(): rects5[i].get_x() + rects5[i].get_width() / 2.0}
+                            rects3[i].get_height(): rects3[i].get_x() + rects3[i].get_width() / 2.0}
+                            # rects4[i].get_height(): rects4[i].get_x() + rects4[i].get_width() / 2.0,
+                            # rects5[i].get_height(): rects5[i].get_x() + rects5[i].get_width() / 2.0}
 
         height_list = list(single_bar_group.keys())
         height_list.sort(reverse=True)
@@ -484,36 +567,66 @@ def plot_with_line(k_perc, no_of_records, dataset_name, diversification_a, sensi
 
     for i in div_scores:
         # multiplying div_score by 10 so it's visible on the chart
-        high_point_y.append(i * 10)
+        # high_point_y.append(i * 10)
+        high_point_y.append(i * 1)
 
     trend_line = plt.plot(high_point_x, high_point_y, marker='o', color='#5b74a8', label='Trend Line')
 
     # rects = [rects1, rects2]
-    rects = [rects1, rects2, rects3, rects4, rects5]
+    rects = [rects1, rects2, rects3]
+    # rects = [rects1, rects2, rects3, rects4, rects5]
 
     for rect in rects:
         autolabel(axes, rect)
 
     plt.xlabel('weights')
     plt.ylabel('sensitive attribute representation (%)')
+    plt.title('diversifying on ' + con_diversification_a + " and " + cat_diversification_a)
     plt.xticks(ind + 0.15, ('0', '0.1', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9', '1'))
     plt.legend()
-    # figure.savefig(fig_save_path)
+    figure.savefig(fig_save_path)
     plt.show()
 
 
-perc = 50
-records = 20000
-dataset = "census"
-div_con_a = "year_weeks"
+def plot_single_bars(k_perc, no_of_records, dataset_name, con_diversification_a, cat_diversification_a, sensitive_a, weight_1,
+        weight_2, normalization_method, algorithm, fig_save_path):
+    plt.rcdefaults()
+    # objects = ('Python', 'C++', 'Java', 'Perl', 'Scala', 'Lisp')
+    objects = ('Married', 'Divorced', 'Single')
+    y_pos = np.arange(len(objects))
+    performance = [10, 8, 6, 4, 2, 1]
+
+    totals = run(k_perc, no_of_records, dataset_name, con_diversification_a, cat_diversification_a, sensitive_a,
+                 weight_1, weight_2, normalization_method, algorithm, fig_save_path)
+
+    print totals
+
+    # plt.bar(y_pos, performance, align='center', alpha=0.5)
+    plt.bar(y_pos, totals[0:3], align='center', color='green', alpha=0.5)
+    plt.xticks(y_pos, objects)
+    plt.ylabel('proportion in data (%)')
+    plt.title('data proportions by '+sens_a)
+    plt.savefig(fig_save_path)
+
+    plt.show()
+
+
+perc = 10
+records = 4522
+# dataset = "census"
+dataset = "bank"
+# div_con_a = "year_weeks"
 # div_con_a = "age"
-div_cat_a = "gender_num"
+div_con_a = "balance"
+# div_cat_a = "gender_num"
+div_cat_a = "marital_num" #marital_num
 # div_cat_a = "race_num"
-sens_a = "gender"
+# sens_a = "gender"
+sens_a = "marital_status"
 # sens_a = "race"
 
-# algorithm = "maxmin"
-algorithm = "maxsum"
+# algorithm = "max_min"
+algorithm = "max_sum"
 
 # normalize_by = "max_val"
 normalize_by = "max_diff"
@@ -521,8 +634,18 @@ normalize_by = "max_diff"
 w1 = 1
 w2 = 1
 
-save_fig_at = ""
+# path = "./data/kdd_census/results/multi_variable/weights/"+sens_a+"/"+algorithm+"/"
+path = "./data/bank_marketing/results/"+sens_a+"/"+algorithm+"/"
+path1 = "./data/bank_marketing/results/general/bank_dataset_marital_status_proportions.png"
 
-run(perc, records, dataset, div_con_a, div_cat_a, sens_a, w1, w2, normalize_by, algorithm, save_fig_at)
-# plot_with_line(perc, records, dataset, div_a, sens_a)
-# run2(perc, records, dataset, div_a, sens_a)
+name = div_con_a+"_"+sens_a+"_N="+str(records)+"_k="+str(perc)+"_dataset="+dataset+"_enlarged"
+
+save_fig_at = path+div_con_a+"_"+sens_a+"_N="+str(records)+"_k="+str(perc)+"_dataset="+dataset+".png"
+
+
+print "file name = ", name
+
+# run(perc, records, dataset, div_con_a, div_cat_a, sens_a, w1, w2, normalize_by, algorithm, save_fig_at)
+# run2(perc, records, dataset, div_con_a, div_cat_a, sens_a, normalize_by, algorithm)
+# plot_with_line(perc, records, dataset, div_con_a, div_cat_a, sens_a, normalize_by, algorithm, save_fig_at)
+plot_single_bars(perc, records, dataset, div_con_a, div_cat_a, sens_a, w1, w2, normalize_by, algorithm, path1)

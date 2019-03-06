@@ -182,7 +182,7 @@ def process(count, column=None):
                 num_row.append(relationship)
             if column.lower() == "race":
                 num_row.append(race)
-            if column.lower() == "gender":
+            if column.lower() == "gender_2":
                 num_row.append(gender)
             if column.lower() == "capital_gain":
                 num_row.append(capital_gain)
@@ -219,7 +219,7 @@ def process(count, column=None):
 
 def obtain_sensitive_attribute_column(sensitive_attribute):
     cols = []
-    if sensitive_attribute.lower() == "gender":
+    if sensitive_attribute.lower() == "gender_2":
         cols.append(8)
     if sensitive_attribute.lower() == "race":
         cols.append(7)

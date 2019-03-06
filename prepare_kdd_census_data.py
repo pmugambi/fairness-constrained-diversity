@@ -16,7 +16,7 @@ def read_test_data():
 
 def obtain_sensitive_attribute_column(sensitive_attribute):
     cols = []
-    if sensitive_attribute.lower() == "gender":
+    if sensitive_attribute.lower() == "gender_2":
         cols.append(12)
     if sensitive_attribute.lower() == "race":
         cols.append(10)
@@ -130,7 +130,7 @@ def process(count, column_name):
             num_row.append(pad.assign_race_num(race))
         if column_name.lower() == "marital_status_num":
             num_row.append(pad.assign_marital_status_num(marital_status))
-        if column_name.lower() == "gender":
+        if column_name.lower() == "gender_2":
             num_row.append(gender)
         if column_name.lower() == "year_weeks":
             num_row.append(weeks_worked_in_year)

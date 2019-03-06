@@ -25,6 +25,9 @@ def distance_function(con_data, max_diff, cat_data, w1, w2):
 def greedy_diverse_mod(d_con, d_cat, max_diff, k, w1, w2):
     top_k = []
 
+    # print "received d_con = ", d_con
+    # print "received d_cat = ", d_cat
+
     # pick first 2
     distance_matrix = distance_function(d_con, max_diff, d_cat, w1, w2)
     # print "found my distance matrix = ", distance_matrix
@@ -64,11 +67,11 @@ def greedy_diverse_mod(d_con, d_cat, max_diff, k, w1, w2):
 
         # obtain min distance for each point, with respect to the chosen points
         sub_matrix_min_val_per_col = np.min(sub_matrix, axis=1)
-        print "sub-matrix minimum value per column  = ", sub_matrix_min_val_per_col
+        # print "sub-matrix minimum value per column  = ", sub_matrix_min_val_per_col
 
         # obtain the point and add it to the sample
         sub_matrix_max_value_row_index = list(sub_matrix_min_val_per_col).index(max(sub_matrix_min_val_per_col))
-        print "sub-matrix max minimum value row = ", sub_matrix_max_value_row_index
+        # print "sub-matrix max minimum value row = ", sub_matrix_max_value_row_index
 
         next_point_index = list(sub_matrix[sub_matrix_max_value_row_index]).index(max(sub_matrix_min_val_per_col))
 

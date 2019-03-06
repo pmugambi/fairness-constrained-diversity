@@ -72,13 +72,13 @@ max_distances = np.nanmax(coefs2, axis=1)
 print min(min_distances)
 print max(max_distances)
 
-# attributes_x = ["age", "gender", "fnlwgt", "education", "work-class", "marital-status", "occupation", "relationship",
+# attributes_x = ["age", "gender_2", "fnlwgt", "education", "work-class", "marital-status", "occupation", "relationship",
 #               "race", "capital-gain", "capital-loss", "hours-per-week", "native-country"]
 
-attributes_x = ["age", "gender", "fnlwgt", "educ", "work", "marital", "occup", "r_ship", "race", "c_gain", "c_loss",
+attributes_x = ["age", "gender_2", "fnlwgt", "educ", "work", "marital", "occup", "r_ship", "race", "c_gain", "c_loss",
                 "hours", "country"]
 
-attributes_y = ["age", "gender", "fnlwgt", "education", "work-class", "marital-status", "occupation", "relationship",
+attributes_y = ["age", "gender_2", "fnlwgt", "education", "work-class", "marital-status", "occupation", "relationship",
            "race", "capital-gain", "capital-loss", "hours-per-week", "native-country"]
 
 

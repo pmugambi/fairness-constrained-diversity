@@ -37,23 +37,23 @@ def greedy_diverse_mod(d_con, d_cat, max_diff, k, w1, w2):
                 rows.append(i)
             else:
                 cols.append(i)
-        print "rows = ", rows, " and cols = ", cols
+        # print "rows = ", rows, " and cols = ", cols
 
         # obtain pairwise distances for region of interest
         sub_matrix = distance_matrix[np.ix_(rows, cols)]
-        print "section of interest = ", sub_matrix
+        # print "section of interest = ", sub_matrix
 
         # obtain min distance for each point, with respect to the chosen points
         # sub_matrix_min_val_per_col = np.min(sub_matrix, axis=1)
         sub_matrix_sum_val_per_col = np.sum(sub_matrix, axis=0)
         # print "sub-matrix minimum value per column  = ", sub_matrix_min_val_per_col
-        print "sub-matrix sum value per column  = ", sub_matrix_sum_val_per_col
+        # print "sub-matrix sum value per column  = ", sub_matrix_sum_val_per_col
 
         # obtain the point and add it to the sample
         # sub_matrix_max_value_row_index = list(sub_matrix_min_val_per_col).index(max(sub_matrix_min_val_per_col))
         sub_matrix_max_sum_value_row_index = list(sub_matrix_sum_val_per_col).index(max(sub_matrix_sum_val_per_col))
         # print "sub-matrix max minimum value row = ", sub_matrix_max_value_row_index
-        print "sub-matrix max sum value row = ", sub_matrix_max_sum_value_row_index
+        # print "sub-matrix max sum value row = ", sub_matrix_max_sum_value_row_index
 
         # next_point_index = list(sub_matrix[sub_matrix_max_value_row_index]).index(max(sub_matrix_min_val_per_col))
         # next_point_index = list(sub_matrix[sub_matrix_max_sum_value_row_index]).index(max(sub_matrix_sum_val_per_col))
