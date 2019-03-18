@@ -9,6 +9,12 @@ def marital_status_number(marital_status):
     return marital_statuses.index(marital_status)
 
 
+def job_number(job):
+    jobs = ['admin.', 'blue-collar', 'entrepreneur', 'housemaid', 'management', 'retired', 'self-employed', 'services',
+            'student', 'technician', 'unemployed', 'unknown']
+    return jobs.index(job)
+
+
 def clean_rows(l):
     data = read_data()
 
@@ -85,6 +91,8 @@ def process(l, column_name):
             num_row.append(marital)
         if column_name == "marital_num":
             num_row.append(marital_status_number(marital))
+        if column_name == "job_num":
+            num_row.append(job_number(job))
         processed_rows.append(num_row)
     return processed_rows
 

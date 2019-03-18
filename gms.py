@@ -8,7 +8,7 @@ def greedy_diverse_mod(d_con, d_cat, max_diff, k, w1, w2):
 
     # pick first 2
     distance_matrix = distance_function(d_con, max_diff, d_cat, w1, w2)
-    # print "found my distance matrix = ", distance_matrix
+    print "found my distance matrix = ", distance_matrix
 
     max_distance = np.max(distance_matrix)
     # print "max val  = ", max_distance

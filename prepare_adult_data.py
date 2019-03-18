@@ -123,8 +123,8 @@ def process(count, column=None):
     processed_data = []
     data = read_data()
 
-    # for i in xrange(0, count):
-    for i in xrange(0, len(data)):
+    for i in xrange(0, count):
+    # for i in xrange(0, len(data)):
         line = data[i].split(" ")
         # print line
         age = float(line[0].replace(",", ""))
@@ -182,7 +182,7 @@ def process(count, column=None):
                 num_row.append(relationship)
             if column.lower() == "race":
                 num_row.append(race)
-            if column.lower() == "gender_2":
+            if column.lower() == "gender":
                 num_row.append(gender)
             if column.lower() == "capital_gain":
                 num_row.append(capital_gain)
@@ -219,7 +219,7 @@ def process(count, column=None):
 
 def obtain_sensitive_attribute_column(sensitive_attribute):
     cols = []
-    if sensitive_attribute.lower() == "gender_2":
+    if sensitive_attribute.lower() == "gender":
         cols.append(8)
     if sensitive_attribute.lower() == "race":
         cols.append(7)
